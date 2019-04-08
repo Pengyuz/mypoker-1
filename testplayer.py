@@ -1,5 +1,5 @@
 from pypokerengine.players import BasePokerPlayer
-
+from pypokerengine.utils.card_utils import gen_cards, estimate_hole_card_win_rate
 import random as rand
 
 import pprint
@@ -32,11 +32,12 @@ class TestPlayer(BasePokerPlayer):
         game_state["my_bet"] = b
         game_state["oppo_bet"] = pot - b
         game_state["valid_actions"] = valid_actions
+        game_state['action_histories'] = round_state['action_histories']
         return game_state
    
     def expectiminimax(self, node):
         MAX_INT = 1e20
-        if node.is_terminal():
+        if node.is_terminal():  # fold node or nature_child
             return node.value
         if node.type == 'self':
             q = -MAX_INT
@@ -53,8 +54,6 @@ class TestPlayer(BasePokerPlayer):
             for child in node.children:
                 # All children are equally probable
                 q += len(node.children)**-1 * self.expectiminimax(child)
-        elif node.type == 'fold' or node.type == 'nature_child':
-            return node.value
         node.set_value(q)
         return q
    
@@ -82,7 +81,11 @@ class TestPlayer(BasePokerPlayer):
         '''
         evaluation function for cut off nodes
         '''
-        return 0
+        hole_card = gen_cards(game_state['my_hole_card'])
+        community_card = gen_cards(game_state['community_card'])
+        pot = game_state['pot']
+        winrate = estimate_hole_card_win_rate(nb_simulation=1, nb_player=2, hole_card=hole_card, community_card=community_card)
+        return winrate * pot
 
     def construct_tree(self, game_state, depth, raise_time):
        
@@ -194,8 +197,8 @@ class TestPlayer(BasePokerPlayer):
         
         game_state = self.build_game_state(valid_actions, hole_card, round_state)
         pp = pprint.PrettyPrinter(indent=2)
-        pp.pprint(hole_card)
-        pp.pprint(valid_actions)
+        #pp.pprint(hole_card)
+        #pp.pprint(valid_actions)
         #print("------------ROUND_STATE(testpalyer)--------")
         #pp.pprint(round_state)
         #print("------------GAME_STATE(testpalyer)--------")
@@ -204,7 +207,6 @@ class TestPlayer(BasePokerPlayer):
 
         if round_state['street'] == 'preflop':
             winrate = PreFlopWinTable().get_winrate(hole_card)
-            print('winreate: ' +str(winrate))
             if winrate <= 0.35:  # fold
                 call_action_info = valid_actions[0]
             elif winrate >= 0.6 and len(valid_actions) == 3:  # raise
@@ -219,6 +221,7 @@ class TestPlayer(BasePokerPlayer):
             res = []
             for child in start_node.children:
                 res.append(child.value)
+            print(res)
             index = res.index(max(res))
             action = valid_actions[index]["action"]
             return action
