@@ -194,7 +194,7 @@ class TestPlayer(BasePokerPlayer):
         #print("my stack:" + str(self.my_stack))
 
         if round_state['street'] == 'preflop':
-            winrate = PreFlopWinTable.get_winrate(hole_card)
+            winrate = PreFlopWinTable().get_winrate(hole_card)
             if winrate <= 0.35:  # fold
                 call_action_info = valid_actions[0]
             elif winrate >= 0.6 and len(valid_actions) == 3:  # raise
@@ -432,6 +432,8 @@ class PreFlopWinTable(object):
         suit2 = hand[1][0]
         card1 = hand[0][1]
         card2 = hand[1][1]
+        if card1 == card2:
+            return self.wintable[card1+card2]
         if suit1 == suit2:
             hand = card1+card2+'s'
             if hand in self.wintable:
