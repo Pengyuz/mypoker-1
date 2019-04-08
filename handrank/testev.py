@@ -3,9 +3,9 @@ from deck import Deck
 from evaluator import Evaluator
 
 board = [
-    Card.new('2h'),
-    Card.new('Kd'),
-    Card.new('Jc')
+    Card.new('Ts'),
+    Card.new('Td'),
+    Card.new('2c')
 ]
 hand = [
     Card.new('Qs'),

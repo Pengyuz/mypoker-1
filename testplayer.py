@@ -75,7 +75,9 @@ class TestPlayer(BasePokerPlayer):
         # simulate new added community card, append all to nature_node
         for card in all_cards:
             if card not in visible_cards:
-                nature_node.add_child(TreeNode([], self.evaluate(game_state), "self", None))
+                new_game_state = nature_node.game_state.copy()
+                new_game_state['community_card'].append(card)
+                nature_node.add_child(TreeNode([], self.evaluate(new_game_state), "nature_child", None))
    
     def evaluate(self, game_state):
         '''
