@@ -44,16 +44,16 @@ class TestPlayer(BasePokerPlayer):
                 q = max(q, self.expectiminimax(child))
         elif node.type == 'oppo':
             q_list = []
-            proba_ditri = [0.33, 0.33, 0.33] # oppo model
+            proba_distri = [0.33, 0.33, 0.33] # oppo model
             for child in node.children:
                 q_list.append(self.expectiminimax(child))
-            q = sum([i*j for i,j in zip(q_list, proba_ditri)])
+            q = sum([i*j for i,j in zip(q_list, proba_distri)])
         elif node.type == 'nature':
             q = 0
             for child in node.children:
                 # All children are equally probable
                 q += len(node.children)**-1 * self.expectiminimax(child)
-        elif node.type == 'fold':
+        elif node.type == 'fold' or node.type == 'nature_child':
             return node.value
         node.set_value(q)
         return q
@@ -62,25 +62,21 @@ class TestPlayer(BasePokerPlayer):
         '''
         append chldren of this nature_node
         '''
-        old_game_state = nature_node.game_state
-        new_game_state = old_game_state
-       
-       # simulate new_game_state, append all to nature_node
-       #for i in range(n):
-        if old_game_state["street"] == "preflop":
-            new_game_state["street"] = "flop"
-            new_game_state["community_card"] = [] # add 3
-        elif old_game_state["street"] == "flop":
-            new_game_state["street"] = "turn"
-            new_game_state["community_card"] = [] # add 1
-        elif old_game_state["street"] == "turn":
-            new_game_state["street"] = "river"
-            new_game_state["community_card"] = [] # add 1
-        elif old_game_state["street"] == "river":
-            new_game_state["street"] = "showdown"
-            new_game_state["community_card"] = []
-       
-        nature_node.add_child(self.construct_tree(new_game_state, depth+1))
+        game_state = nature_node.game_state
+        all_cards = ['C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'CT', 'CJ', 'CQ', 'CK', 'CA',
+                     'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'DT', 'DJ', 'DQ', 'DK', 'DA',
+                     'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9', 'HT', 'HJ', 'HQ', 'HK', 'HA',
+                     'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'ST', 'SJ', 'SQ', 'SK', 'SA']
+        visible_cards = []
+        for c1 in game_state['my_hole_card']:
+            visible_cards.append(c1)
+        for c2 in game_state['community_card']:
+            visible_cards.append(c2)
+
+        # simulate new added community card, append all to nature_node
+        for card in all_cards:
+            if card not in visible_cards:
+                nature_node.add_child(TreeNode([], self.evaluate(game_state), "self", None))
    
     def evaluate(self, game_state):
         '''
@@ -88,7 +84,7 @@ class TestPlayer(BasePokerPlayer):
         '''
         return 0
 
-    def construct_tree(self, game_state, depth):
+    def construct_tree(self, game_state, depth, raise_time):
        
         if game_state["turn"] == "me":
            
@@ -107,16 +103,18 @@ class TestPlayer(BasePokerPlayer):
 
                 elif action["action"] == "raise":
 
-                    new_game_state = game_state
+                    new_game_state = game_state.copy()
                     new_game_state["turn"] = "oppo"
                     new_game_state["pot"] = new_game_state["pot"] + oppo_bet+10-my_bet
                     new_game_state["my_bet"] = new_game_state["my_bet"] + oppo_bet+10-my_bet
                     
-                    #if raise_time == 4
-                    new_valid_actions = [{ "action" : "fold"  },{ "action" : "call" },{ "action" : "raise" }]
+                    if raise_time == 4:
+                        new_valid_actions = [{ "action" : "fold"  },{ "action" : "call" }]
+                    else:
+                        new_valid_actions = [{ "action" : "fold"  },{ "action" : "call" },{ "action" : "raise" }]
                     
                     new_game_state["valid_actions"] = new_valid_actions
-                    node.add_child(self.construct_tree(new_game_state, depth+1))
+                    node.add_child(self.construct_tree(new_game_state, depth+1, raise_time+1))
                
                 elif action["action"] == "call":
                    
@@ -125,15 +123,18 @@ class TestPlayer(BasePokerPlayer):
                         node.add_child(nature_node)
                         self.add_nature_node_children(nature_node, depth)
                     else:
-                        new_game_state = game_state
+                        new_game_state = game_state.copy()
                         new_game_state["turn"] = "oppo"
                         new_game_state["pot"] = new_game_state["pot"] + 10
                         new_game_state["my_bet"] = new_game_state["my_bet"] + 10
 
-                        #if raise_time == 4
-                        new_valid_actions = [{ "action" : "fold"  },{ "action" : "call" },{ "action" : "raise" }]
+                        if raise_time == 4:
+                            new_valid_actions = [{ "action" : "fold"  },{ "action" : "call" }]
+                        else:
+                            new_valid_actions = [{ "action" : "fold"  },{ "action" : "call" },{ "action" : "raise" }]
+
                         new_game_state["valid_actions"] = new_valid_actions
-                        node.add_child(self.construct_tree(new_game_state, depth+1))
+                        node.add_child(self.construct_tree(new_game_state, depth+1, raise_time))
                
             return node
        
@@ -153,15 +154,18 @@ class TestPlayer(BasePokerPlayer):
 
                 elif action["action"] == "raise":
 
-                    new_game_state = game_state
+                    new_game_state = game_state.copy()
                     new_game_state["turn"] = "me"
                     new_game_state["pot"] = new_game_state["pot"] + my_bet+10-oppo_bet
                     new_game_state["oppo_bet"] = new_game_state["oppo_bet"] + my_bet+10-oppo_bet
 
-                    #if raise_time == 4
-                    new_valid_actions = [{ "action" : "fold"  },{ "action" : "call" },{ "action" : "raise" }]
+                    if raise_time == 4:
+                        new_valid_actions = [{ "action" : "fold"  },{ "action" : "call" }]
+                    else:
+                        new_valid_actions = [{ "action" : "fold"  },{ "action" : "call" },{ "action" : "raise" }]
+
                     new_game_state["valid_actions"] = new_valid_actions
-                    node.add_child(self.construct_tree(new_game_state, depth+1))
+                    node.add_child(self.construct_tree(new_game_state, depth+1, raise_time+1))
                
                 elif action["action"] == "call":
                    
@@ -170,15 +174,18 @@ class TestPlayer(BasePokerPlayer):
                         node.add_child(nature_node)
                         self.add_nature_node_children(nature_node, depth)
                     else:
-                        new_game_state = game_state
+                        new_game_state = game_state.copy()
                         new_game_state["turn"] = "me"
                         new_game_state["pot"] = new_game_state["pot"] + 10
                         new_game_state["oppo_bet"] = new_game_state["oppo_bet"] + 10
 
-                        #if raise_time == 4
-                        new_valid_actions = [{ "action" : "fold"  },{ "action" : "call" },{ "action" : "raise" }]
+                        if raise_time == 4:
+                            new_valid_actions = [{"action": "fold"}, {"action": "call"}]
+                        else:
+                            new_valid_actions = [{"action": "fold"}, {"action": "call"}, {"action": "raise"}]
+
                         new_game_state["valid_actions"] = new_valid_actions
-                        node.add_child(self.construct_tree(new_game_state, depth+1))
+                        node.add_child(self.construct_tree(new_game_state, depth+1, raise_time))
                
             return node
    
@@ -187,24 +194,27 @@ class TestPlayer(BasePokerPlayer):
         
         game_state = self.build_game_state(valid_actions, hole_card, round_state)
         pp = pprint.PrettyPrinter(indent=2)
+        pp.pprint(hole_card)
+        pp.pprint(valid_actions)
         #print("------------ROUND_STATE(testpalyer)--------")
         #pp.pprint(round_state)
-        print("------------GAME_STATE(testpalyer)--------")
-        pp.pprint(game_state)
+        #print("------------GAME_STATE(testpalyer)--------")
+        #pp.pprint(game_state)
         #print("my stack:" + str(self.my_stack))
 
         if round_state['street'] == 'preflop':
             winrate = PreFlopWinTable().get_winrate(hole_card)
+            print('winreate: ' +str(winrate))
             if winrate <= 0.35:  # fold
                 call_action_info = valid_actions[0]
             elif winrate >= 0.6 and len(valid_actions) == 3:  # raise
                 call_action_info = valid_actions[2]
             else:  # call
-                call_action_info = valid_actions[0]
+                call_action_info = valid_actions[1]
             action = call_action_info["action"]
             return action
         else:
-            start_node = self.construct_tree(game_state, 1)
+            start_node = self.construct_tree(game_state, 1, 0)
             self.expectiminimax(start_node)
             res = []
             for child in start_node.children:
@@ -238,7 +248,7 @@ class TreeNode(object):
     def __init__(self, children=None, value=None, type=None, game_state=None):
         self.children = []
         self.value = value
-        self.type = type  # either 'self', 'oppo', 'nature' or 'fold'
+        self.type = type  # either 'self', 'oppo', 'nature', 'nature_child' or 'fold'
         self.game_state = game_state
         if children is not None:
             for child in children:
