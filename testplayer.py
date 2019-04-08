@@ -195,15 +195,23 @@ class TestPlayer(BasePokerPlayer):
 
         if round_state['street'] == 'preflop':
             winrate = PreFlopWinTable.get_winrate(hole_card)
-
-        start_node = self.construct_tree(game_state, 1)
-        self.expectiminimax(start_node)
-        res = []
-        for child in start_node.children:
-            res.append(child.value)
-        index = res.index(max(res))
-        action = valid_actions[index]["action"]
-        return action
+            if winrate <= 0.35:  # fold
+                call_action_info = valid_actions[0]
+            elif winrate >= 0.6 and len(valid_actions) == 3:  # raise
+                call_action_info = valid_actions[2]
+            else:  # call
+                call_action_info = valid_actions[0]
+            action = call_action_info["action"]
+            return action
+        else:
+            start_node = self.construct_tree(game_state, 1)
+            self.expectiminimax(start_node)
+            res = []
+            for child in start_node.children:
+                res.append(child.value)
+            index = res.index(max(res))
+            action = valid_actions[index]["action"]
+            return action
         
 
     def receive_game_start_message(self, game_info):
