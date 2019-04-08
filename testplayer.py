@@ -1,5 +1,6 @@
 from pypokerengine.players import BasePokerPlayer
 from pypokerengine.utils.card_utils import gen_cards, estimate_hole_card_win_rate
+import copy
 import random as rand
 
 import pprint
@@ -75,7 +76,7 @@ class TestPlayer(BasePokerPlayer):
         # simulate new added community card, append all to nature_node
         for card in all_cards:
             if card not in visible_cards:
-                new_game_state = nature_node.game_state.copy()
+                new_game_state = copy.deepcopy(game_state)
                 new_game_state['community_card'].append(card)
                 nature_node.add_child(TreeNode([], self.evaluate(new_game_state), "nature_child", None))
    
@@ -86,7 +87,7 @@ class TestPlayer(BasePokerPlayer):
         hole_card = gen_cards(game_state['my_hole_card'])
         community_card = gen_cards(game_state['community_card'])
         pot = game_state['pot']
-        winrate = estimate_hole_card_win_rate(nb_simulation=1, nb_player=2, hole_card=hole_card, community_card=community_card)
+        winrate = estimate_hole_card_win_rate(nb_simulation=50, nb_player=2, hole_card=hole_card, community_card=community_card)
         return winrate * pot
 
     def construct_tree(self, game_state, depth, raise_time):
@@ -108,7 +109,7 @@ class TestPlayer(BasePokerPlayer):
 
                 elif action["action"] == "raise":
 
-                    new_game_state = game_state.copy()
+                    new_game_state = copy.deepcopy(game_state)
                     new_game_state["turn"] = "oppo"
                     new_game_state["pot"] = new_game_state["pot"] + oppo_bet+10-my_bet
                     new_game_state["my_bet"] = new_game_state["my_bet"] + oppo_bet+10-my_bet
@@ -128,7 +129,7 @@ class TestPlayer(BasePokerPlayer):
                         node.add_child(nature_node)
                         self.add_nature_node_children(nature_node, depth)
                     else:
-                        new_game_state = game_state.copy()
+                        new_game_state = copy.deepcopy(game_state)
                         new_game_state["turn"] = "oppo"
                         new_game_state["pot"] = new_game_state["pot"] + 10
                         new_game_state["my_bet"] = new_game_state["my_bet"] + 10
@@ -159,7 +160,7 @@ class TestPlayer(BasePokerPlayer):
 
                 elif action["action"] == "raise":
 
-                    new_game_state = game_state.copy()
+                    new_game_state = copy.deepcopy(game_state)
                     new_game_state["turn"] = "me"
                     new_game_state["pot"] = new_game_state["pot"] + my_bet+10-oppo_bet
                     new_game_state["oppo_bet"] = new_game_state["oppo_bet"] + my_bet+10-oppo_bet
@@ -179,7 +180,7 @@ class TestPlayer(BasePokerPlayer):
                         node.add_child(nature_node)
                         self.add_nature_node_children(nature_node, depth)
                     else:
-                        new_game_state = game_state.copy()
+                        new_game_state = copy.deepcopy(game_state)
                         new_game_state["turn"] = "me"
                         new_game_state["pot"] = new_game_state["pot"] + 10
                         new_game_state["oppo_bet"] = new_game_state["oppo_bet"] + 10
