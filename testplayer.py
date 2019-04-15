@@ -90,15 +90,20 @@ class TestPlayer(BasePokerPlayer):
         pot = game_state['pot']
         strength = 1.0 / (getRank(hole_card, community_card))
         stack = self.my_stack
-        raiseNo = 1
+        raiseNo = self.compute_oppo_raisetime(game_state)
         result = strength * self.weights['strength'] + (pot / 2.0) / stack * self.weights['ps'] + raiseNo * \
                  self.weights['raiseNo']
 
-        # print(strength)
+        return (1-result/(7462*self.weights['strength']))*pot
 
-        winrate = estimate_hole_card_win_rate(nb_simulation=50, nb_player=2, hole_card=hole_card,
-                                              community_card=community_card)
-        return winrate * pot
+    def compute_oppo_raisetime(self, game_state):
+        action_history = game_state['action_histories']
+        count = 0
+        for hists in action_history.values():
+            for hist in hists:
+                if hist['uuid'] != self.uuid and hist['action'] == 'RAISE':
+                    count += 1
+        return count
 
     def construct_tree(self, game_state, depth, raise_time):
 
