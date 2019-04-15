@@ -8,7 +8,7 @@ import numpy as np
 import timeit
 
 
-class TestPlayer(BasePokerPlayer):
+class TestPlayer1(BasePokerPlayer):
 
     def __init__(self):
         self.my_stack = 1000
@@ -102,7 +102,7 @@ class TestPlayer(BasePokerPlayer):
         strength = getRank(hole_card, community_card)
         stack = self.my_stack
         raiseNo = self.compute_oppo_raisetime(game_state)
-        result = strength * self.weights['strength'] + (pot / 2.0) / stack * self.weights['ps'] + raiseNo * \
+        result = strength * self.weights['strength'] + (pot / 2.0) / (stack+1) * self.weights['ps'] + raiseNo * \
                  self.weights['raiseNo']
 
         return (1-result/(7462*self.weights['strength']))*pot
@@ -245,7 +245,7 @@ class TestPlayer(BasePokerPlayer):
                 call_action_info = valid_actions[1]
             action = call_action_info["action"]
             end = timeit.timeit()
-            #print((end - start)*1000)
+            print((end - start)*1000)
             return action
         else:
             start1 = timeit.timeit()
@@ -254,11 +254,11 @@ class TestPlayer(BasePokerPlayer):
             res = []
             for child in start_node.children:
                 res.append(child.value)
-            #print(res)
+            print(res)
             index = res.index(max(res))
             action = valid_actions[index]["action"]
             end1 = timeit.timeit()
-            #print((end1-start1)*1000)
+            print((end1-start1)*1000)
             return action
 
     def receive_game_start_message(self, game_info):
