@@ -88,7 +88,7 @@ class TestPlayer(BasePokerPlayer):
         hole_card = gen_cards(game_state['my_hole_card'])
         community_card = gen_cards(game_state['community_card'])
         pot = game_state['pot']
-        strength = getRank(hole_card,community_card)
+        strength = 1.0/(getRank(hole_card, community_card))
         stack = self.my_stack
         raiseNo = 1
         result = strength * self.weights['strength'] + (pot/2.0)/stack * self.weights['ps'] + raiseNo * self.weights['raiseNo']
@@ -478,22 +478,18 @@ def getRank(hole,community):
     hole_new = convertCard(hole)
     community_new = convertCard(community)
     evaluate = Evaluator()
-    return evaluate.evaluate(hole_new,community_new)
+    marks = (1 - evaluate.evaluate(hole_new, community_new)*1.0/7462.00)
+    return marks
 
 def convertCard(cards=[]):
     # C D H S
     result=[]
-    a=''
-    b=''
-
     for ele in cards:
+        ele = str(ele)
         a = str(ele[0]).lower()
         b = ele[1]
         result.append(Card.new(b+a))
-        pass
     return result
-
-
 # --------------------------------------------------------------------------------------- evaluation method
 # card class
 
