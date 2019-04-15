@@ -21,29 +21,30 @@ config.register_player(name="FT2", algorithm=Te2)
     # file.write(json.dumps(exDict))
 file  =  open('dataset.txt','w')
 
-for ele in range(10):
+for ele in range(1):
+    pp = pprint.PrettyPrinter(indent=2)
+    pp.pprint(Te1.weights)
+    pp.pprint(Te2.weights)
     game_result = start_poker(config, verbose=1)
     a=0
     b=0
-    for player in game_result['players']:
-        if player['name'] == 'FT1':
-            a = player['stack']
-        elif player['name'] == 'FT2':
-            b = player['stack']
-    if a < b:
-        base_weights = Te2.weights
-        new_weights = {'strength':base_weights['strength']+uniform(-0.05, 0.1), 'ps':1, 'raiseNo':1}
-
-        Te1.setWeights(new_weights)
-        file.write(json.dumps((Te2.weights)))
-    else:
-        base_weights = Te1.weights
-        new_weights = {'strength': base_weights['strength'] + uniform(-0.05, 0.1), 'ps': 1, 'raiseNo': 1}
-
-        Te2.setWeights(new_weights)
-        file.write(json.dumps((Te1.weights)))
-    config.register_player(name="FT1", algorithm=Te1)
-    config.register_player(name="FT2", algorithm=Te2)
+    # for player in game_result['players']:
+    #     if player['name'] == 'FT1':
+    #         a = player['stack']
+    #     elif player['name'] == 'FT2':
+    #         b = player['stack']
+    # if a < b:
+    #     base_weights = Te2.weights
+    #     new_weights = {'strength':base_weights['strength']+0.1, 'ps':1, 'raiseNo':1}
+    #
+    #     Te1.setWeights(new_weights)
+    #     file.write(json.dumps((Te2.weights)))
+    # else:
+    #     base_weights = Te1.weights
+    #     new_weights = {'strength': base_weights['strength'] + 0.1, 'ps': 1, 'raiseNo': 1}
+    #
+    #     Te2.setWeights(new_weights)
+    #     file.write(json.dumps((Te1.weights)))
 file.close()
 
 # pp = pprint.PrettyPrinter(indent=2)

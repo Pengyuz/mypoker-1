@@ -12,10 +12,10 @@ class TestPlayer(BasePokerPlayer):
 
     def __init__(self):
         self.my_stack = 1000
-        self.weights = {'strength': 1, 'ps': 1, 'raiseNo': 1}
+        self.weights = {'strength': 1.799987449308683, 'ps': 1, 'raiseNo': 1}
 
-    def setWeights(self, weights):
-        self.weights = weights
+    def setWeights(self, new_weights):
+        self.weights = new_weights
 
     def build_game_state(self, valid_actions, hole_card, round_state):
 
@@ -84,7 +84,7 @@ class TestPlayer(BasePokerPlayer):
             for card1 in visible_cards:
                 all_cards.remove(card1)
 
-            sample = np.random.choice(all_cards, size=7, replace=False)
+            sample = np.random.choice(all_cards, size=5, replace=False)
             for card in sample:
                 new_game_state = copy.deepcopy(game_state)
                 new_game_state['community_card'].append(card)
@@ -102,7 +102,7 @@ class TestPlayer(BasePokerPlayer):
         strength = getRank(hole_card, community_card)
         stack = self.my_stack
         raiseNo = self.compute_oppo_raisetime(game_state)
-        result = strength * self.weights['strength'] + (pot / 2.0) / stack * self.weights['ps'] + raiseNo * \
+        result = strength * self.weights['strength'] - (pot / 2.0) / (stack+1) * self.weights['ps'] + raiseNo * \
                  self.weights['raiseNo']
 
         return (1-result/(7462*self.weights['strength']))*pot

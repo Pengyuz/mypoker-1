@@ -1,1 +1,0 @@
-{"ps": 1, "raiseNo": 1, "strength": 1}{"ps": 1, "raiseNo": 1, "strength": 1}
