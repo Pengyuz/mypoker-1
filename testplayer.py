@@ -5,12 +5,13 @@ from random import shuffle
 import pprint
 import itertools
 
+
 class TestPlayer(BasePokerPlayer):
 
     def __init__(self):
         self.my_stack = 1000
-        self.weights = {'strength':1,'ps':1,'raiseNo':1}
-   
+        self.weights = {'strength': 1, 'ps': 1, 'raiseNo': 1}
+
     def build_game_state(self, valid_actions, hole_card, round_state):
 
         game_state = {}
@@ -19,24 +20,23 @@ class TestPlayer(BasePokerPlayer):
         game_state["street"] = round_state["street"]
         game_state["community_card"] = round_state["community_card"]
         game_state["my_hole_card"] = hole_card
-       
+
         pot = round_state["pot"]["main"]["amount"]
         game_state["pot"] = pot
-       
+
         b = 0
         player_uuids_stacks = [(player_info['uuid'], player_info["stack"]) for player_info in round_state["seats"]]
         for (uuid, stack) in player_uuids_stacks:
 
             if uuid == self.uuid:
-
                 b = self.my_stack - stack
-       
+
         game_state["my_bet"] = b
         game_state["oppo_bet"] = pot - b
         game_state["valid_actions"] = valid_actions
         game_state['action_histories'] = round_state['action_histories']
         return game_state
-   
+
     def expectiminimax(self, node):
         MAX_INT = 1e20
         if node.is_terminal():  # fold node or nature_child
@@ -47,18 +47,18 @@ class TestPlayer(BasePokerPlayer):
                 q = max(q, self.expectiminimax(child))
         elif node.type == 'oppo':
             q_list = []
-            proba_distri = [0.33, 0.33, 0.33] # oppo model
+            proba_distri = [0.33, 0.33, 0.33]  # oppo model
             for child in node.children:
                 q_list.append(self.expectiminimax(child))
-            q = sum([i*j for i,j in zip(q_list, proba_distri)])
+            q = sum([i * j for i, j in zip(q_list, proba_distri)])
         elif node.type == 'nature':
             q = 0
             for child in node.children:
                 # All children are equally probable
-                q += len(node.children)**-1 * self.expectiminimax(child)
+                q += len(node.children) ** -1 * self.expectiminimax(child)
         node.set_value(q)
         return q
-   
+
     def add_nature_node_children(self, nature_node, depth):
         '''
         append chldren of this nature_node
@@ -80,7 +80,7 @@ class TestPlayer(BasePokerPlayer):
                 new_game_state = copy.deepcopy(game_state)
                 new_game_state['community_card'].append(card)
                 nature_node.add_child(TreeNode([], self.evaluate(new_game_state), "nature_child", None))
-   
+
     def evaluate(self, game_state):
         '''
         evaluation function for cut off nodes
@@ -88,20 +88,22 @@ class TestPlayer(BasePokerPlayer):
         hole_card = gen_cards(game_state['my_hole_card'])
         community_card = gen_cards(game_state['community_card'])
         pot = game_state['pot']
-        strength = 1.0/(getRank(hole_card, community_card))
+        strength = 1.0 / (getRank(hole_card, community_card))
         stack = self.my_stack
         raiseNo = 1
-        result = strength * self.weights['strength'] + (pot/2.0)/stack * self.weights['ps'] + raiseNo * self.weights['raiseNo']
+        result = strength * self.weights['strength'] + (pot / 2.0) / stack * self.weights['ps'] + raiseNo * \
+                 self.weights['raiseNo']
 
         # print(strength)
 
-        winrate = estimate_hole_card_win_rate(nb_simulation=50, nb_player=2, hole_card=hole_card, community_card=community_card)
+        winrate = estimate_hole_card_win_rate(nb_simulation=50, nb_player=2, hole_card=hole_card,
+                                              community_card=community_card)
         return winrate * pot
 
     def construct_tree(self, game_state, depth, raise_time):
-       
+
         if game_state["turn"] == "me":
-           
+
             node = TreeNode([], 0, "self", game_state)
             if depth == 10:
                 node.set_value(self.evaluate(game_state))
@@ -119,19 +121,19 @@ class TestPlayer(BasePokerPlayer):
 
                     new_game_state = copy.deepcopy(game_state)
                     new_game_state["turn"] = "oppo"
-                    new_game_state["pot"] = new_game_state["pot"] + oppo_bet+10-my_bet
-                    new_game_state["my_bet"] = new_game_state["my_bet"] + oppo_bet+10-my_bet
-                    
+                    new_game_state["pot"] = new_game_state["pot"] + oppo_bet + 10 - my_bet
+                    new_game_state["my_bet"] = new_game_state["my_bet"] + oppo_bet + 10 - my_bet
+
                     if raise_time == 4:
-                        new_valid_actions = [{ "action" : "fold"  },{ "action" : "call" }]
+                        new_valid_actions = [{"action": "fold"}, {"action": "call"}]
                     else:
-                        new_valid_actions = [{ "action" : "fold"  },{ "action" : "call" },{ "action" : "raise" }]
-                    
+                        new_valid_actions = [{"action": "fold"}, {"action": "call"}, {"action": "raise"}]
+
                     new_game_state["valid_actions"] = new_valid_actions
-                    node.add_child(self.construct_tree(new_game_state, depth+1, raise_time+1))
-               
+                    node.add_child(self.construct_tree(new_game_state, depth + 1, raise_time + 1))
+
                 elif action["action"] == "call":
-                   
+
                     if my_bet == oppo_bet:
                         nature_node = TreeNode([], 0, "nature", game_state)
                         node.add_child(nature_node)
@@ -143,21 +145,21 @@ class TestPlayer(BasePokerPlayer):
                         new_game_state["my_bet"] = new_game_state["my_bet"] + 10
 
                         if raise_time == 4:
-                            new_valid_actions = [{ "action" : "fold"  },{ "action" : "call" }]
+                            new_valid_actions = [{"action": "fold"}, {"action": "call"}]
                         else:
-                            new_valid_actions = [{ "action" : "fold"  },{ "action" : "call" },{ "action" : "raise" }]
+                            new_valid_actions = [{"action": "fold"}, {"action": "call"}, {"action": "raise"}]
 
                         new_game_state["valid_actions"] = new_valid_actions
-                        node.add_child(self.construct_tree(new_game_state, depth+1, raise_time))
-               
+                        node.add_child(self.construct_tree(new_game_state, depth + 1, raise_time))
+
             return node
-       
+
         else:
             node = TreeNode([], 0, "oppo", game_state)
             if depth == 10:
                 node.set_value(self.evaluate(game_state))
                 return node
-           
+
             my_bet = game_state["my_bet"]
             oppo_bet = game_state["oppo_bet"]
             for action in game_state["valid_actions"]:
@@ -170,19 +172,19 @@ class TestPlayer(BasePokerPlayer):
 
                     new_game_state = copy.deepcopy(game_state)
                     new_game_state["turn"] = "me"
-                    new_game_state["pot"] = new_game_state["pot"] + my_bet+10-oppo_bet
-                    new_game_state["oppo_bet"] = new_game_state["oppo_bet"] + my_bet+10-oppo_bet
+                    new_game_state["pot"] = new_game_state["pot"] + my_bet + 10 - oppo_bet
+                    new_game_state["oppo_bet"] = new_game_state["oppo_bet"] + my_bet + 10 - oppo_bet
 
                     if raise_time == 4:
-                        new_valid_actions = [{ "action" : "fold"  },{ "action" : "call" }]
+                        new_valid_actions = [{"action": "fold"}, {"action": "call"}]
                     else:
-                        new_valid_actions = [{ "action" : "fold"  },{ "action" : "call" },{ "action" : "raise" }]
+                        new_valid_actions = [{"action": "fold"}, {"action": "call"}, {"action": "raise"}]
 
                     new_game_state["valid_actions"] = new_valid_actions
-                    node.add_child(self.construct_tree(new_game_state, depth+1, raise_time+1))
-               
+                    node.add_child(self.construct_tree(new_game_state, depth + 1, raise_time + 1))
+
                 elif action["action"] == "call":
-                   
+
                     if my_bet == oppo_bet:
                         nature_node = TreeNode([], 0, "nature", game_state)
                         node.add_child(nature_node)
@@ -199,22 +201,22 @@ class TestPlayer(BasePokerPlayer):
                             new_valid_actions = [{"action": "fold"}, {"action": "call"}, {"action": "raise"}]
 
                         new_game_state["valid_actions"] = new_valid_actions
-                        node.add_child(self.construct_tree(new_game_state, depth+1, raise_time))
-               
+                        node.add_child(self.construct_tree(new_game_state, depth + 1, raise_time))
+
             return node
-   
+
     #  we define the logic to make an action through this method. (so this method would be the core of your AI)
     def declare_action(self, valid_actions, hole_card, round_state):
-        
+
         game_state = self.build_game_state(valid_actions, hole_card, round_state)
         pp = pprint.PrettyPrinter(indent=2)
-        #pp.pprint(hole_card)
-        #pp.pprint(valid_actions)
-        #print("------------ROUND_STATE(testpalyer)--------")
-        #pp.pprint(round_state)
-        #print("------------GAME_STATE(testpalyer)--------")
-        #pp.pprint(game_state)
-        #print("my stack:" + str(self.my_stack))
+        # pp.pprint(hole_card)
+        # pp.pprint(valid_actions)
+        # print("------------ROUND_STATE(testpalyer)--------")
+        # pp.pprint(round_state)
+        # print("------------GAME_STATE(testpalyer)--------")
+        # pp.pprint(game_state)
+        # print("my stack:" + str(self.my_stack))
 
         if round_state['street'] == 'preflop':
             winrate = PreFlopWinTable().get_winrate(hole_card)
@@ -236,7 +238,6 @@ class TestPlayer(BasePokerPlayer):
             index = res.index(max(res))
             action = valid_actions[index]["action"]
             return action
-        
 
     def receive_game_start_message(self, game_info):
         pass
@@ -253,11 +254,11 @@ class TestPlayer(BasePokerPlayer):
     def receive_round_result_message(self, winners, hand_info, round_state):
         player_uuids_stacks = [(player_info['uuid'], player_info["stack"]) for player_info in round_state["seats"]]
         for (uuid, stack) in player_uuids_stacks:
-            
+
             if uuid == self.uuid:
-                
                 self.my_stack = stack
-   
+
+
 class TreeNode(object):
     def __init__(self, children=None, value=None, type=None, game_state=None):
         self.children = []
@@ -273,7 +274,7 @@ class TreeNode(object):
 
     def is_terminal(self):
         return len(self.children) == 0
-   
+
     def set_value(self, value):
         self.value = value
 
@@ -413,7 +414,7 @@ class PreFlopWinTable(object):
         self.wintable['83s'] = 0.408
         self.wintable['83o'] = 0.375
         self.wintable['82s'] = 0.403
-        self.wintable['82o'] =0.368
+        self.wintable['82o'] = 0.368
         self.wintable['77'] = 0.662
         self.wintable['76s'] = 0.457
         self.wintable['76o'] = 0.427
@@ -457,39 +458,43 @@ class PreFlopWinTable(object):
         card1 = hand[0][1]
         card2 = hand[1][1]
         if card1 == card2:
-            return self.wintable[card1+card2]
+            return self.wintable[card1 + card2]
         if suit1 == suit2:
-            hand = card1+card2+'s'
+            hand = card1 + card2 + 's'
             if hand in self.wintable:
                 return self.wintable[hand]
             else:
-                hand = card2+card1+'s'
+                hand = card2 + card1 + 's'
                 return self.wintable[hand]
         else:
-            hand = card1+card2+'o'
+            hand = card1 + card2 + 'o'
             if hand in self.wintable:
                 return self.wintable[hand]
             else:
-                hand = card2+card1+'o'
+                hand = card2 + card1 + 'o'
                 return self.wintable[hand]
 
+
 # ---------------------------------------------------------------------------------------
-def getRank(hole,community):
+def getRank(hole, community):
     hole_new = convertCard(hole)
     community_new = convertCard(community)
     evaluate = Evaluator()
-    marks = (1 - evaluate.evaluate(hole_new, community_new)*1.0/7462.00)
+    marks = (1 - evaluate.evaluate(hole_new, community_new) * 1.0 / 7462.00)
     return marks
+
 
 def convertCard(cards=[]):
     # C D H S
-    result=[]
+    result = []
     for ele in cards:
         ele = str(ele)
         a = str(ele[0]).lower()
         b = ele[1]
-        result.append(Card.new(b+a))
+        result.append(Card.new(b + a))
     return result
+
+
 # --------------------------------------------------------------------------------------- evaluation method
 # card class
 
@@ -676,6 +681,7 @@ class Card():
 
         print(output)
 
+
 # -----------------------------------------------------------------------
 # deck class
 class Deck:
@@ -713,10 +719,12 @@ class Deck:
 
         # create the standard 52 card deck
         for rank in Card.STR_RANKS:
-            for suit,val in Card.CHAR_SUIT_TO_INT_SUIT.iteritems():
+            for suit, val in Card.CHAR_SUIT_TO_INT_SUIT.iteritems():
                 Deck._FULL_DECK.append(Card.new(rank + suit))
 
         return list(Deck._FULL_DECK)
+
+
 # ------------------------------------------------------------------------
 # evaluator class
 class Evaluator(object):
@@ -895,6 +903,8 @@ class Evaluator(object):
                     print "Players %s tied for the win with a %s\n" % (winners,
                                                                        self.class_to_string(self.get_rank_class(
                                                                            self.evaluate(hands[winners[0]], board))))
+
+
 # ---------------------------------------------------------------------------------------------------------------------
 #  lookup class
 
@@ -1139,5 +1149,3 @@ class LookupTable(object):
             t = (next | (next - 1)) + 1
             next = t | ((((t & -t) / (next & -next)) >> 1) - 1)
             yield next
-
-
