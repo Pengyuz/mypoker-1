@@ -105,7 +105,7 @@ class TestPlayer1(BasePokerPlayer):
         result = strength * self.weights['strength'] - (pot / 2.0) / (stack+1) * self.weights['ps'] + raiseNo * \
                  self.weights['raiseNo']
 
-        return (1-result/(7462*self.weights['strength']))*pot
+        return (1-result/(7462*self.weights['strength'] + 4*self.weights['raiseNo']))*pot
 
     def compute_oppo_raisetime(self, game_state):
         action_history = game_state['action_histories']

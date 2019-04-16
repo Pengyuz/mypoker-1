@@ -22,7 +22,7 @@ config.register_player(name="FT2", algorithm=Te2)
 file  =  open('dataset.txt','w')
 
 count = 0
-for ele in range(10):
+for ele in range(5):
     pp = pprint.PrettyPrinter(indent=2)
     pp.pprint(Te1.weights)
     pp.pprint(Te2.weights)
