@@ -8,11 +8,11 @@ import numpy as np
 import timeit
 
 
-class TestPlayer1(BasePokerPlayer):
+class TestPlayer2(BasePokerPlayer):
 
     def __init__(self):
         self.my_stack = 1000
-        self.weights = {'strength': 1, 'ps': 10, 'raiseNo': 10}
+        self.weights = {'strength': 1, 'ps': 1, 'raiseNo': 1}
 
     def setWeights(self, new_weights):
         self.weights = new_weights
@@ -102,10 +102,10 @@ class TestPlayer1(BasePokerPlayer):
         strength = getRank(hole_card, community_card)
         stack = self.my_stack
         raiseNo = self.compute_oppo_raisetime(game_state)
-        result = (1-strength*1.0/7462) * self.weights['strength'] * pot + (pot / 2.0) / (stack+1) * self.weights['ps'] - raiseNo * \
+        result = strength * self.weights['strength'] - (pot / 2.0) / (stack+1) * self.weights['ps'] + raiseNo * \
                  self.weights['raiseNo']
 
-        return result
+        return (1-result/(7462*self.weights['strength']))*pot
 
     def compute_oppo_raisetime(self, game_state):
         action_history = game_state['action_histories']

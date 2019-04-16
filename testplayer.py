@@ -89,7 +89,7 @@ class TestPlayer(BasePokerPlayer):
                 for card1 in visible_cards:
                     all_cards.remove(card1)
 
-                sample = np.random.choice(all_cards, size=10, replace=False)
+                sample = np.random.choice(all_cards, size=8, replace=False)
                 for card in sample:
                     new_game_state = copy.deepcopy(game_state)
                     new_game_state['community_card'].append(card)
