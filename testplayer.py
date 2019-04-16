@@ -84,7 +84,7 @@ class TestPlayer(BasePokerPlayer):
             for card1 in visible_cards:
                 all_cards.remove(card1)
 
-            sample = np.random.choice(all_cards, size=5, replace=False)
+            sample = np.random.choice(all_cards, size=6, replace=False)
             for card in sample:
                 new_game_state = copy.deepcopy(game_state)
                 new_game_state['community_card'].append(card)
@@ -121,7 +121,7 @@ class TestPlayer(BasePokerPlayer):
         if game_state["turn"] == "me":
 
             node = TreeNode([], 0, "self", game_state)
-            if depth == 5:
+            if depth == 4:
                 node.set_value(self.evaluate(game_state))
                 return node
 
@@ -172,7 +172,7 @@ class TestPlayer(BasePokerPlayer):
 
         else:
             node = TreeNode([], 0, "oppo", game_state)
-            if depth == 5:
+            if depth == 4:
                 node.set_value(self.evaluate(game_state))
                 return node
 
@@ -303,176 +303,49 @@ class TreeNode(object):
 
 class PreFlopWinTable(object):
     def __init__(self):
-        self.wintable = {}
-        self.wintable['AA'] = 0.853
-        self.wintable['AKs'] = 0.67
-        self.wintable['AKo'] = 0.654
-        self.wintable['AQs'] = 0.661
-        self.wintable['AQo'] = 0.645
-        self.wintable['AJs'] = 0.654
-        self.wintable['AJo'] = 0.636
-        self.wintable['ATs'] = 0.647
-        self.wintable['ATo'] = 0.629
-        self.wintable['A9s'] = 0.63
-        self.wintable['A9o'] = 0.609
-        self.wintable['A8s'] = 0.621
-        self.wintable['A8o'] = 0.601
-        self.wintable['A7s'] = 0.611
-        self.wintable['A7o'] = 0.591
-        self.wintable['A6s'] = 0.6
-        self.wintable['A6o'] = 0.578
-        self.wintable['A5s'] = 0.599
-        self.wintable['A5o'] = 0.577
-        self.wintable['A4s'] = 0.589
-        self.wintable['A4o'] = 0.564
-        self.wintable['A3s'] = 0.58
-        self.wintable['A3o'] = 0.556
-        self.wintable['A2s'] = 0.57
-        self.wintable['A2o'] = 0.546
-        self.wintable['KK'] = 0.824
-        self.wintable['KQs'] = 0.634
-        self.wintable['KQo'] = 0.614
-        self.wintable['KJs'] = 0.626
-        self.wintable['KJo'] = 0.606
-        self.wintable['KTs'] = 0.619
-        self.wintable['KTo'] = 0.599
-        self.wintable['K9s'] = 0.6
-        self.wintable['K9o'] = 0.58
-        self.wintable['K8s'] = 0.585
-        self.wintable['K8o'] = 0.563
-        self.wintable['K7s'] = 0.578
-        self.wintable['K7o'] = 0.554
-        self.wintable['K6s'] = 0.568
-        self.wintable['K6o'] = 0.543
-        self.wintable['K5s'] = 0.558
-        self.wintable['K5o'] = 0.533
-        self.wintable['K4s'] = 0.547
-        self.wintable['K4o'] = 0.521
-        self.wintable['K3s'] = 0.538
-        self.wintable['K3o'] = 0.512
-        self.wintable['K2s'] = 0.529
-        self.wintable['K2o'] = 0.502
-        self.wintable['QQ'] = 0.799
-        self.wintable['QJs'] = 0.603
-        self.wintable['QJo'] = 0.582
-        self.wintable['QTs'] = 0.595
-        self.wintable['QTo'] = 0.574
-        self.wintable['Q9s'] = 0.579
-        self.wintable['Q9o'] = 0.555
-        self.wintable['Q8s'] = 0.562
-        self.wintable['Q8o'] = 0.538
-        self.wintable['Q7s'] = 0.545
-        self.wintable['Q7o'] = 0.519
-        self.wintable['Q6s'] = 0.538
-        self.wintable['Q6o'] = 0.511
-        self.wintable['Q5s'] = 0.529
-        self.wintable['Q5o'] = 0.502
-        self.wintable['Q4s'] = 0.517
-        self.wintable['Q4o'] = 0.49
-        self.wintable['Q3s'] = 0.507
-        self.wintable['Q3o'] = 0.479
-        self.wintable['Q2s'] = 0.499
-        self.wintable['Q2o'] = 0.47
-        self.wintable['JJ'] = 0.775
-        self.wintable['JTs'] = 0.575
-        self.wintable['JTo'] = 0.554
-        self.wintable['J9s'] = 0.558
-        self.wintable['J9o'] = 0.534
-        self.wintable['J8s'] = 0.542
-        self.wintable['J8o'] = 0.517
-        self.wintable['J7s'] = 0.524
-        self.wintable['J7o'] = 0.499
-        self.wintable['J6s'] = 0.508
-        self.wintable['J6o'] = 0.479
-        self.wintable['J5s'] = 0.5
-        self.wintable['J5o'] = 0.471
-        self.wintable['J4s'] = 0.49
-        self.wintable['J4o'] = 0.461
-        self.wintable['J3s'] = 0.479
-        self.wintable['J3o'] = 0.45
-        self.wintable['J2s'] = 0.471
-        self.wintable['J2o'] = 0.44
-        self.wintable['TT'] = 0.751
-        self.wintable['T9s'] = 0.543
-        self.wintable['T9o'] = 0.517
-        self.wintable['T8s'] = 0.526
-        self.wintable['T8o'] = 0.5
-        self.wintable['T7s'] = 0.51
-        self.wintable['T7o'] = 0.482
-        self.wintable['T6s'] = 0.492
-        self.wintable['T6o'] = 0.463
-        self.wintable['T5s'] = 0.472
-        self.wintable['T5o'] = 0.442
-        self.wintable['T4s'] = 0.464
-        self.wintable['T4o'] = 0.434
-        self.wintable['T3s'] = 0.455
-        self.wintable['T3o'] = 0.424
-        self.wintable['T2s'] = 0.447
-        self.wintable['T2o'] = 0.415
-        self.wintable['99'] = 0.721
-        self.wintable['98s'] = 0.511
-        self.wintable['98o'] = 0.484
-        self.wintable['97s'] = 0.495
-        self.wintable['97o'] = 0.467
-        self.wintable['96s'] = 0.477
-        self.wintable['96o'] = 0.449
-        self.wintable['95s'] = 0.459
-        self.wintable['95o'] = 0.429
-        self.wintable['94s'] = 0.438
-        self.wintable['94o'] = 0.407
-        self.wintable['93s'] = 0.432
-        self.wintable['93o'] = 0.399
-        self.wintable['92s'] = 0.423
-        self.wintable['92o'] = 0.389
-        self.wintable['88'] = 0.691
-        self.wintable['87s'] = 0.482
-        self.wintable['87o'] = 0.455
-        self.wintable['86s'] = 0.465
-        self.wintable['86o'] = 0.436
-        self.wintable['85s'] = 0.448
-        self.wintable['85o'] = 0.417
-        self.wintable['84s'] = 0.427
-        self.wintable['84o'] = 0.396
-        self.wintable['83s'] = 0.408
-        self.wintable['83o'] = 0.375
-        self.wintable['82s'] = 0.403
-        self.wintable['82o'] = 0.368
-        self.wintable['77'] = 0.662
-        self.wintable['76s'] = 0.457
-        self.wintable['76o'] = 0.427
-        self.wintable['75s'] = 0.438
-        self.wintable['75o'] = 0.408
-        self.wintable['74s'] = 0.418
-        self.wintable['74o'] = 0.386
-        self.wintable['73s'] = 0.4
-        self.wintable['73o'] = 0.366
-        self.wintable['72s'] = 0.381
-        self.wintable['72o'] = 0.346
-        self.wintable['66'] = 0.633
-        self.wintable['65s'] = 0.432
-        self.wintable['65o'] = 0.401
-        self.wintable['64s'] = 0.414
-        self.wintable['64o'] = 0.38
-        self.wintable['63s'] = 0.394
-        self.wintable['63o'] = 0.359
-        self.wintable['62s'] = 0.375
-        self.wintable['62o'] = 0.34
-        self.wintable['55'] = 0.603
-        self.wintable['54s'] = 0.411
-        self.wintable['54o'] = 0.379
-        self.wintable['53s'] = 0.393
-        self.wintable['53o'] = 0.358
-        self.wintable['52s'] = 0.375
-        self.wintable['52o'] = 0.339
-        self.wintable['44'] = 0.57
-        self.wintable['43s'] = 0.38
-        self.wintable['43o'] = 0.344
-        self.wintable['42s'] = 0.363
-        self.wintable['42o'] = 0.325
-        self.wintable['33'] = 0.573
-        self.wintable['32s'] = 0.351
-        self.wintable['32o'] = 0.312
-        self.wintable['22'] = 0.503
+        self.wintable = {'AA': 0.853,'AKs':0.67,'AKo':0.654,'AQs':0.661,
+                         'AQo': 0.645,'AJs':0.654,'AJo':0.636,'ATs':0.647,
+                         'ATo': 0.629,'A9s':0.63,'A9o':0.609,'A8s':0.621,
+                         'A8o': 0.601,'A7s':0.611,'A7o':0.591,'A6s':0.6,
+                        'A6o': 0.578,'A5s':0.599,'A5o':0.577,'A4s':0.589,
+                        'A4o': 0.564,'A3s':0.58,'A3o':0.556,'A2s':0.57,
+                        'A2o': 0.546,'KK':0.824,'KQs':0.634,'KQo':0.614,
+                         'KJs': 0.626 ,'KJo':0.606,'KTs':0.619,'KTo':0.599,
+                         'K9s': 0.6 ,'K9o':0.58,'K8s':0.585,'K8o':0.563,
+                         'K7s': 0.578 ,'K7o':0.554,'K6s':0.568,'K6o':0.543,
+                         'K5s': 0.558 ,'K5o':0.533,'K4s':0.547,'K4o':0.521,
+                         'K3s': 0.538 ,'K3o':0.512,'K2s':0.529,'K2o':0.502,
+                         'QQ': 0.799 ,'QJs':0.603,'QJo':0.582,'QTs':0.595,
+                         'QTo': 0.574 ,'Q9s':0.579,'Q9o':0.555,'Q8s':0.562,
+                         'Q8o': 0.538 ,'Q7s':0.545,'Q7o':0.519,'Q6s':0.538,
+                         'Q6o': 0.511 ,'Q5s':0.529,'Q5o':0.502,'Q4s':0.517,
+                         'Q4o': 0.49 ,'Q3s':0.507,'Q3o':0.479,'Q2s':0.499,
+                         'Q2o': 0.47,'JJ':0.775,'JTs':0.575,'JTo':0.554,
+                         'J9s': 0.558,'J9o':0.534,'J8s':0.542,'J8o':0.517,
+                         'J7s': 0.524,'J7o':0.499,'J6s':0.508,'J6o':0.479,
+                         'J5s': 0.5,'J5o':0.471,'J4s':0.49,'J4o':0.461,
+                         'J3s': 0.479,'J3o':0.45,'J2s':0.471,'J2o':0.44,
+                         'TT': 0.751,'T9s':0.543,'T9o':0.517,'T8s':0.526,
+                         'T8o': 0.5,'T7s':0.51,'T7o':0.482,'T6s':0.492,
+                         'T6o': 0.463,'T5s':0.472,'T5o':0.442,'T4s':0.464,
+                         'T4o': 0.434,'T3s':0.455,'T3o':0.424,'T2s':0.447,
+                         'T2o': 0.415,'99':0.721,'98s':0.511,'98o':0.484,
+                         '97s': 0.495,'97o':0.467,'96s':0.477,'96o':0.449,
+                         '95s': 0.459,'95o':0.429,'94s':0.438,'94o':0.407,
+                         '93s': 0.432,'93o':0.399,'92s':0.423,'92o':0.389,
+                         '88': 0.691,'87s':0.482,'87o':0.455,'86s':0.465,
+                         '86o': 0.436,'85s':0.448,'85o':0.417,'84s':0.427,
+                         '84o': 0.396,'83s':0.408,'83o':0.375,'82s':0.403,
+                         '82o': 0.368,'77':0.662,'76s':0.457,'76o':0.427,
+                         '75s': 0.438,'75o':0.408,'74s':0.418,'74o':0.386,
+                         '73s': 0.4,'73o':0.366,'72s':0.381,'72o':0.346,
+                         '66': 0.633,'65s':0.432,'65o':0.401,'64s':0.414,
+                         '64o': 0.38,'63s':0.394,'63o':0.359,'62s':0.375,
+                         '62o': 0.34,'55':0.603,'54s':0.411,'54o':0.379,
+                         '53s': 0.393,'53o':0.358,'52s':0.375,'52o':0.339,
+                         '44':0.57,'43s':0.38,'43o':0.344,'42s':0.363,
+                         '42o':0.325,'33':0.573,'32s':0.351,'32o':0.312,
+                         '22':0.503}
 
     def get_winrate(self, hand):
         suit1 = hand[0][0]

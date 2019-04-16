@@ -14,25 +14,28 @@ Te1 = T1()
 Te2 = T2()
 
 config.register_player(name="FT1", algorithm=Te1)
-config.register_player(name="FT2", algorithm=Te2)
+config.register_player(name="FT2", algorithm=RandomPlayer())
 
 # with open('file.txt', 'w') as file:
 #     pass
     # file.write(json.dumps(exDict))
 file  =  open('dataset.txt','w')
 
-for ele in range(1):
+count = 0
+for ele in range(10):
     pp = pprint.PrettyPrinter(indent=2)
     pp.pprint(Te1.weights)
     pp.pprint(Te2.weights)
     game_result = start_poker(config, verbose=1)
     a=0
     b=0
-    # for player in game_result['players']:
-    #     if player['name'] == 'FT1':
-    #         a = player['stack']
-    #     elif player['name'] == 'FT2':
-    #         b = player['stack']
+    for player in game_result['players']:
+        if player['name'] == 'FT1':
+            a = player['stack']
+        elif player['name'] == 'FT2':
+            b = player['stack']
+    if a < b:
+        count += 1
     # if a < b:
     #     base_weights = Te2.weights
     #     new_weights = {'strength':base_weights['strength']+0.1, 'ps':1, 'raiseNo':1}
@@ -46,6 +49,6 @@ for ele in range(1):
     #     Te2.setWeights(new_weights)
     #     file.write(json.dumps((Te1.weights)))
 file.close()
-
+print(count)
 # pp = pprint.PrettyPrinter(indent=2)
 # pp.pprint(game_result)
