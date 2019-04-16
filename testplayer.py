@@ -13,6 +13,7 @@ class TestPlayer(BasePokerPlayer):
     def __init__(self):
         self.my_stack = 1000
         self.weights = {'strength': 1.799987449308683, 'ps': 1, 'raiseNo': 1}
+        self.nature_strengths = []
 
     def setWeights(self, new_weights):
         self.weights = new_weights
@@ -70,29 +71,49 @@ class TestPlayer(BasePokerPlayer):
         '''
         game_state = nature_node.game_state
         if game_state['street'] != 'river':
-            all_cards = ['C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'CT', 'CJ', 'CQ', 'CK', 'CA',
-                         'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'DT', 'DJ', 'DQ', 'DK', 'DA',
-                         'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9', 'HT', 'HJ', 'HQ', 'HK', 'HA',
-                         'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'ST', 'SJ', 'SQ', 'SK', 'SA']
-            visible_cards = []
-            for c1 in game_state['my_hole_card']:
-                visible_cards.append(c1)
-            for c2 in game_state['community_card']:
-                visible_cards.append(c2)
+            if len(self.nature_strengths) != 0:
+                for s in self.nature_strengths:
+                    nature_node.add_child(TreeNode([], self.evaluate(s, game_state), "nature_child", None))
+            else:
+                all_cards = ['C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'CT', 'CJ', 'CQ', 'CK', 'CA',
+                             'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'DT', 'DJ', 'DQ', 'DK', 'DA',
+                             'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9', 'HT', 'HJ', 'HQ', 'HK', 'HA',
+                             'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'ST', 'SJ', 'SQ', 'SK', 'SA']
+                visible_cards = []
+                for c1 in game_state['my_hole_card']:
+                    visible_cards.append(c1)
+                for c2 in game_state['community_card']:
+                    visible_cards.append(c2)
 
-            # simulate new added community card, append all to nature_node
-            for card1 in visible_cards:
-                all_cards.remove(card1)
+                # simulate new added community card, append all to nature_node
+                for card1 in visible_cards:
+                    all_cards.remove(card1)
 
-            sample = np.random.choice(all_cards, size=6, replace=False)
-            for card in sample:
-                new_game_state = copy.deepcopy(game_state)
-                new_game_state['community_card'].append(card)
-                nature_node.add_child(TreeNode([], self.evaluate(new_game_state), "nature_child", None))
+                sample = np.random.choice(all_cards, size=25, replace=False)
+                for card in sample:
+                    new_game_state = copy.deepcopy(game_state)
+                    new_game_state['community_card'].append(card)
+                    hole_card = gen_cards(game_state['my_hole_card'])
+                    community_card = gen_cards(new_game_state['community_card'])
+                    strength = getRank(hole_card, community_card)
+                    self.nature_strengths.append(strength)
+                    nature_node.add_child(TreeNode([], self.evaluate(strength, game_state), "nature_child", None))
         else:
-            nature_node.add_child(TreeNode([], self.evaluate(game_state), "nature_child", None))
+            nature_node.add_child(TreeNode([], self.evaluate2(game_state), "nature_child", None))
 
-    def evaluate(self, game_state):
+    def evaluate(self, strength, game_state):
+        '''
+        evaluation function for cut off nodes
+        '''
+        pot = game_state['pot']
+        stack = self.my_stack
+        raiseNo = self.compute_oppo_raisetime(game_state)
+        result = strength * self.weights['strength'] - (pot / 2.0) / (stack+1) * self.weights['ps'] + raiseNo * \
+                 self.weights['raiseNo']
+
+        return (1-result/(7462*self.weights['strength']))*pot
+
+    def evaluate2(self, game_state):
         '''
         evaluation function for cut off nodes
         '''
@@ -122,7 +143,7 @@ class TestPlayer(BasePokerPlayer):
 
             node = TreeNode([], 0, "self", game_state)
             if depth == 4:
-                node.set_value(self.evaluate(game_state))
+                node.set_value(self.evaluate2(game_state))
                 return node
 
             my_bet = game_state["my_bet"]
@@ -173,7 +194,7 @@ class TestPlayer(BasePokerPlayer):
         else:
             node = TreeNode([], 0, "oppo", game_state)
             if depth == 4:
-                node.set_value(self.evaluate(game_state))
+                node.set_value(self.evaluate2(game_state))
                 return node
 
             my_bet = game_state["my_bet"]
@@ -254,7 +275,7 @@ class TestPlayer(BasePokerPlayer):
             res = []
             for child in start_node.children:
                 res.append(child.value)
-            #print(res)
+            print(res)
             index = res.index(max(res))
             action = valid_actions[index]["action"]
             end1 = timeit.timeit()
@@ -268,7 +289,7 @@ class TestPlayer(BasePokerPlayer):
         pass
 
     def receive_street_start_message(self, street, round_state):
-        pass
+        self.nature_strengths = []
 
     def receive_game_update_message(self, action, round_state):
         pass

@@ -14,7 +14,7 @@ Te1 = T1()
 Te2 = T2()
 
 config.register_player(name="FT1", algorithm=Te1)
-config.register_player(name="FT2", algorithm=RandomPlayer())
+config.register_player(name="FT2", algorithm=Te2)
 
 # with open('file.txt', 'w') as file:
 #     pass
