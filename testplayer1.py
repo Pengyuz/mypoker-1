@@ -12,7 +12,7 @@ class TestPlayer1(BasePokerPlayer):
 
     def __init__(self):
         self.my_stack = 1000
-        self.weights = {'strength': 1, 'ps': 10, 'raiseNo': 10}
+        self.weights = {'strength': 1, 'ps': 10, 'raiseNo': 10, 'p': 0.6}
 
     def setWeights(self, new_weights):
         self.weights = new_weights
@@ -84,7 +84,7 @@ class TestPlayer1(BasePokerPlayer):
             for card1 in visible_cards:
                 all_cards.remove(card1)
 
-            sample = np.random.choice(all_cards, size=6, replace=False)
+            sample = np.random.choice(all_cards, size=5, replace=False)
             for card in sample:
                 new_game_state = copy.deepcopy(game_state)
                 new_game_state['community_card'].append(card)
@@ -102,8 +102,9 @@ class TestPlayer1(BasePokerPlayer):
         strength = getRank(hole_card, community_card)
         stack = self.my_stack
         raiseNo = self.compute_oppo_raisetime(game_state)
+        #print(str(1-strength*1.0/7462)+' '+str((pot / 2.0) / (stack+1))+' ' + str(raiseNo))
         result = (1-strength*1.0/7462) * self.weights['strength'] * pot + (pot / 2.0) / (stack+1) * self.weights['ps'] - raiseNo * \
-                 self.weights['raiseNo']
+                 self.weights['raiseNo'] - pot*self.weights['p']
 
         return result
 
@@ -254,7 +255,12 @@ class TestPlayer1(BasePokerPlayer):
             res = []
             for child in start_node.children:
                 res.append(child.value)
-            print(res)
+            #print(res)
+            if len(res) == 3:
+                if res[2] > res[1]:
+                    print('true')
+                else:
+                    print('false')
             index = res.index(max(res))
             action = valid_actions[index]["action"]
             end1 = timeit.timeit()

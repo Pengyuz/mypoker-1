@@ -3,6 +3,7 @@ from randomplayer import RandomPlayer
 from raise_player import RaisedPlayer
 from testplayer import TestPlayer as T1
 from testplayer1 import TestPlayer1 as T2
+from testplayer2 import TestPlayer2 as T3
 import json
 import pprint
 from random import uniform
@@ -12,9 +13,10 @@ config = setup_config(max_round=100, initial_stack=1000, small_blind_amount=10)
 
 Te1 = T1()
 Te2 = T2()
+Te3 = T3()
 
-config.register_player(name="FT1", algorithm=Te1)
-config.register_player(name="FT2", algorithm=Te2)
+config.register_player(name="FT1", algorithm=Te2)
+config.register_player(name="FT2", algorithm=Te3)
 
 # with open('file.txt', 'w') as file:
 #     pass
@@ -22,7 +24,7 @@ config.register_player(name="FT2", algorithm=Te2)
 file  =  open('dataset.txt','w')
 
 count = 0
-for ele in range(5):
+for ele in range(30):
     pp = pprint.PrettyPrinter(indent=2)
     pp.pprint(Te1.weights)
     pp.pprint(Te2.weights)
