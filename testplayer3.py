@@ -12,7 +12,7 @@ class TestPlayer3(BasePokerPlayer):
 
     def __init__(self):
         self.my_stack = 1000
-        self.weights = {'strength': 1, 'ps': 10, 'raiseNo': 10, 'p': 0.3}
+        self.weights = {'strength': 1, 'ps': 10, 'raiseNo': 10, 'p': 0.8}
 
     def setWeights(self, new_weights):
         self.weights = new_weights
@@ -52,7 +52,7 @@ class TestPlayer3(BasePokerPlayer):
                 q = max(q, self.expectiminimax(child))
         elif node.type == 'oppo':
             q_list = []
-            proba_distri = [0.33, 0.33, 0.33]  # oppo model
+            proba_distri = [0.1, 0.55, 0.35]  # oppo model
             for child in node.children:
                 q_list.append(self.expectiminimax(child))
             q = sum([i * j for i, j in zip(q_list, proba_distri)])
