@@ -12,7 +12,7 @@ class TestPlayer1(BasePokerPlayer):
 
     def __init__(self):
         self.my_stack = 1000
-        self.weights = {'strength': 1.2, 'ps': 13, 'raiseNo': 15, 'p': 0.8}
+        self.weights = {'strength': 1.6, 'ps': 13, 'raiseNo': 18, 'p': 0.65}
 
     def setWeights(self, new_weights):
         self.weights = new_weights
