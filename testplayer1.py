@@ -12,7 +12,7 @@ class TestPlayer1(BasePokerPlayer):
 
     def __init__(self):
         self.my_stack = 1000
-        self.weights = {'strength': 1, 'ps': 10, 'raiseNo': 10, 'p': 0.6}
+        self.weights = {'strength': 1.2, 'ps': 13, 'raiseNo': 15, 'p': 0.8}
 
     def setWeights(self, new_weights):
         self.weights = new_weights
@@ -52,7 +52,7 @@ class TestPlayer1(BasePokerPlayer):
                 q = max(q, self.expectiminimax(child))
         elif node.type == 'oppo':
             q_list = []
-            proba_distri = [0.33, 0.33, 0.33]  # oppo model
+            proba_distri = [0.1, 0.55, 0.35]  # oppo model
             for child in node.children:
                 q_list.append(self.expectiminimax(child))
             q = sum([i * j for i, j in zip(q_list, proba_distri)])
@@ -86,9 +86,9 @@ class TestPlayer1(BasePokerPlayer):
 
             sample = np.random.choice(all_cards, size=5, replace=False)
             for card in sample:
-                new_game_state = copy.deepcopy(game_state)
-                new_game_state['community_card'].append(card)
-                nature_node.add_child(TreeNode([], self.evaluate(new_game_state), "nature_child", None))
+                new_community_card = copy.deepcopy(game_state['community_card'])
+                new_community_card.append(card)
+                nature_node.add_child(TreeNode([], self.evaluate2(new_community_card, game_state), "nature_child", None))
         else:
             nature_node.add_child(TreeNode([], self.evaluate(game_state), "nature_child", None))
 
@@ -103,8 +103,24 @@ class TestPlayer1(BasePokerPlayer):
         stack = self.my_stack
         raiseNo = self.compute_oppo_raisetime(game_state)
         #print(str(1-strength*1.0/7462)+' '+str((pot / 2.0) / (stack+1))+' ' + str(raiseNo))
-        result = (1-strength*1.0/7462) * self.weights['strength'] * pot + (pot / 2.0) / (stack+1) * self.weights['ps'] - raiseNo * \
-                 self.weights['raiseNo'] - pot*self.weights['p']
+        result = (1-strength*1.0/7462) * self.weights['strength'] * pot - raiseNo * \
+                 self.weights['raiseNo'] - (strength*1.0/7462) *(pot/1.0) * self.weights['p'] #- pot*((strength+pot)*1.0/(7462+pot))*self.weights['p']- (pot / 2.0) / (stack+1) * self.weights['ps']
+
+        return result
+
+    def evaluate2(self, new_community_card, game_state):
+        '''
+        evaluation function for cut off nodes
+        '''
+        hole_card = gen_cards(game_state['my_hole_card'])
+        community_card = gen_cards(new_community_card)
+        pot = game_state['pot']
+        strength = getRank(hole_card, community_card)
+        stack = self.my_stack
+        raiseNo = self.compute_oppo_raisetime(game_state)
+        #print(str(1-strength*1.0/7462)+' '+str((pot / 2.0) / (stack+1))+' ' + str(raiseNo))
+        result = (1-strength*1.0/7462) * self.weights['strength'] * pot - raiseNo * \
+                 self.weights['raiseNo'] - (strength*1.0/7462) *(pot/1.0) * self.weights['p'] #- pot*((strength+pot)*1.0/(7462+pot))*self.weights['p']- (pot / 2.0) / (stack+1) * self.weights['ps']
 
         return result
 
@@ -255,12 +271,16 @@ class TestPlayer1(BasePokerPlayer):
             res = []
             for child in start_node.children:
                 res.append(child.value)
-            #print(res)
+            print(res)
             if len(res) == 3:
                 if res[2] > res[1]:
                     print('true')
                 else:
                     print('false')
+            hole_card2 = gen_cards(hole_card)
+            community_card2 = gen_cards(round_state['community_card'])
+            strength = getRank(hole_card2, community_card2)
+            print(1-strength*1.0/7462)
             index = res.index(max(res))
             action = valid_actions[index]["action"]
             end1 = timeit.timeit()

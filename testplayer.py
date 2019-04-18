@@ -89,7 +89,7 @@ class TestPlayer(BasePokerPlayer):
                 for card1 in visible_cards:
                     all_cards.remove(card1)
 
-                sample = np.random.choice(all_cards, size=8, replace=False)
+                sample = np.random.choice(all_cards, size=5, replace=False)
                 for card in sample:
                     new_game_state = copy.deepcopy(game_state)
                     new_game_state['community_card'].append(card)
@@ -275,7 +275,7 @@ class TestPlayer(BasePokerPlayer):
             res = []
             for child in start_node.children:
                 res.append(child.value)
-            print(res)
+            #print(res)
             index = res.index(max(res))
             action = valid_actions[index]["action"]
             end1 = timeit.timeit()

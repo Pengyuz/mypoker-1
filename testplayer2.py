@@ -2,6 +2,7 @@ from pypokerengine.players import BasePokerPlayer
 from pypokerengine.utils.card_utils import gen_cards, estimate_hole_card_win_rate
 import copy
 from random import shuffle
+from random import uniform
 import pprint
 import itertools
 import numpy as np
@@ -21,6 +22,7 @@ class TestPlayer2(BasePokerPlayer):
 
         game_state = {}
 
+        game_state["depth"] = 1
         game_state["turn"] = "me"
         game_state["street"] = round_state["street"]
         game_state["community_card"] = round_state["community_card"]
@@ -52,7 +54,7 @@ class TestPlayer2(BasePokerPlayer):
                 q = max(q, self.expectiminimax(child))
         elif node.type == 'oppo':
             q_list = []
-            proba_distri = [0.33, 0.33, 0.33]  # oppo model
+            proba_distri = [0.15, 0.55, 0.3]  # oppo model
             for child in node.children:
                 q_list.append(self.expectiminimax(child))
             q = sum([i * j for i, j in zip(q_list, proba_distri)])
@@ -99,13 +101,14 @@ class TestPlayer2(BasePokerPlayer):
         hole_card = gen_cards(game_state['my_hole_card'])
         community_card = gen_cards(game_state['community_card'])
         pot = game_state['pot']
+        depth = game_state['depth']
         strength = getRank(hole_card, community_card)
         stack = self.my_stack
         raiseNo = self.compute_oppo_raisetime(game_state)
-        result = strength * self.weights['strength'] - (pot / 2.0) / (stack+1) * self.weights['ps'] + raiseNo * \
+        result = (7462-strength) * self.weights['strength'] + (pot / 2.0) / (stack+1) * self.weights['ps'] - raiseNo * \
                  self.weights['raiseNo']
-
-        return (1-result/(7462*self.weights['strength']))*pot
+        #print('strength ' + str(strength) + ' ' + str(result)+' ' + str((pot / 2.0) / (stack+1)) + ' ' + str(raiseNo))
+        return result
 
     def compute_oppo_raisetime(self, game_state):
         action_history = game_state['action_histories']
@@ -131,11 +134,12 @@ class TestPlayer2(BasePokerPlayer):
 
                 if action["action"] == "fold":
 
-                    node.add_child(TreeNode([], -game_state["my_bet"], "fold", None))
+                    node.add_child(TreeNode([], self.evaluate(game_state), "fold", None))
 
                 elif action["action"] == "raise":
 
                     new_game_state = copy.deepcopy(game_state)
+                    new_game_state["depth"] = new_game_state["depth"]+1
                     new_game_state["turn"] = "oppo"
                     new_game_state["pot"] = new_game_state["pot"] + oppo_bet + 10 - my_bet
                     new_game_state["my_bet"] = new_game_state["my_bet"] + oppo_bet + 10 - my_bet
@@ -156,6 +160,7 @@ class TestPlayer2(BasePokerPlayer):
                         self.add_nature_node_children(nature_node, depth)
                     else:
                         new_game_state = copy.deepcopy(game_state)
+                        new_game_state["depth"] = new_game_state["depth"] + 1
                         new_game_state["turn"] = "oppo"
                         new_game_state["pot"] = new_game_state["pot"] + 10
                         new_game_state["my_bet"] = new_game_state["my_bet"] + 10
@@ -182,11 +187,12 @@ class TestPlayer2(BasePokerPlayer):
 
                 if action["action"] == "fold":
 
-                    node.add_child(TreeNode([], game_state["oppo_bet"], "fold", None))
+                    node.add_child(TreeNode([], self.evaluate(game_state), "fold", None))
 
                 elif action["action"] == "raise":
 
                     new_game_state = copy.deepcopy(game_state)
+                    new_game_state["depth"] = new_game_state["depth"] + 1
                     new_game_state["turn"] = "me"
                     new_game_state["pot"] = new_game_state["pot"] + my_bet + 10 - oppo_bet
                     new_game_state["oppo_bet"] = new_game_state["oppo_bet"] + my_bet + 10 - oppo_bet
@@ -207,6 +213,7 @@ class TestPlayer2(BasePokerPlayer):
                         self.add_nature_node_children(nature_node, depth)
                     else:
                         new_game_state = copy.deepcopy(game_state)
+                        new_game_state["depth"] = new_game_state["depth"] + 1
                         new_game_state["turn"] = "me"
                         new_game_state["pot"] = new_game_state["pot"] + 10
                         new_game_state["oppo_bet"] = new_game_state["oppo_bet"] + 10
@@ -254,12 +261,33 @@ class TestPlayer2(BasePokerPlayer):
             res = []
             for child in start_node.children:
                 res.append(child.value)
-            #print(res)
-            index = res.index(max(res))
-            action = valid_actions[index]["action"]
-            end1 = timeit.timeit()
-            #print((end1-start1)*1000)
-            return action
+            # print(res)
+            # if len(res) == 3:
+            #     if res[2] > res[1]:
+            #         print('true')
+            #     else:
+            #         print('false')
+            # if res[0] < 1000:
+            #     return valid_actions[0]["action"]
+            # elif len(res) == 3:
+            #     choice = uniform(0, res[1]*0.2+res[2]*0.8)
+            #     if choice >= 0 and choice <= res[1]*0.2:
+            #         return valid_actions[1]["action"]
+            #     else:
+            #         return valid_actions[2]["action"]
+            # else:
+            #     return valid_actions[1]["action"]
+            if res[0] < 1000:
+                return valid_actions[0]["action"]
+            elif res[0] > 4000 and len(valid_actions) == 3:
+                return valid_actions[2]["action"]
+            else:
+                return valid_actions[1]["action"]
+            # index = res.index(max(res))
+            # action = valid_actions[index]["action"]
+            # end1 = timeit.timeit()
+            # #print((end1-start1)*1000)
+            # return action
 
     def receive_game_start_message(self, game_info):
         pass
