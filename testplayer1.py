@@ -11,7 +11,7 @@ import timeit
 class TestPlayer1(BasePokerPlayer):
 
     def __init__(self):
-        self.my_stack = 1000
+        self.my_stack = 10000
         self.weights = {'strength': 1.6, 'ps': 13, 'raiseNo': 18, 'p': 0.65}
 
     def setWeights(self, new_weights):
@@ -288,7 +288,7 @@ class TestPlayer1(BasePokerPlayer):
             return action
 
     def receive_game_start_message(self, game_info):
-        pass
+        self.my_stack = 10000
 
     def receive_round_start_message(self, round_count, hole_card, seats):
         pass
